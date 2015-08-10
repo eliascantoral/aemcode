@@ -64,3 +64,118 @@ return count( $comments_by_type['comment'] );
 return $count;
 }
 }
+
+function theme_settings_page(){
+ ?>
+        <div class="wrap">
+        <h1>Theme Panel</h1>
+        <form method="post" action="options.php" enctype="multipart/form-data">
+            <?php
+                settings_fields("section");
+                do_settings_sections("theme-options");      
+                submit_button(); 
+            ?>          
+        </form>
+        </div>
+    <?php
+}
+ 
+function add_theme_menu_item()
+{
+    add_menu_page("@emcode", "@emcode", "manage_options", "theme-panel", "theme_settings_page", null, 99);
+}
+ 
+add_action("admin_menu", "add_theme_menu_item");
+/***************************************************************************************************/
+
+
+add_action( 'init', 'create_post_type' );
+function create_post_type() {
+  register_post_type( 'banner',
+    array(
+      'labels' => array(
+        'name' => __( 'Banner' ),
+        'singular_name' => __( 'Banner' )
+      ),
+      'public' => true,
+      'has_archive' => true,
+      'supports' => array('thumbnail','title'),
+    )
+  );
+}
+
+
+/****************************************************************************************************/
+function display_twitter_element()
+{
+    ?>
+        <input type="text" name="twitter_url" id="twitter_url" value="<?php echo get_option('twitter_url'); ?>" />
+    <?php
+}
+ 
+function display_facebook_element()
+{
+    ?>
+        <input type="text" name="facebook_url" id="facebook_url" value="<?php echo get_option('facebook_url'); ?>" />
+    <?php
+}
+function display_youtube_element()
+{
+    ?>
+        <input type="text" name="youtube_url" id="youtube_url" value="<?php echo get_option('youtube_url'); ?>" />
+    <?php
+}
+
+function logo_display()
+{
+    if(get_option('logo')){
+            echo '<img src="'.get_option('logo').'" width="200px">';
+        }  
+    ?>
+        <br>
+        <input type="file" id="logo" name="logo" value="<?php echo get_option('logo'); ?>"/> 
+        <?php  
+}
+ 
+function handle_logo_upload()
+{   
+    if(!empty($_FILES["logo"]["tmp_name"]))
+    {
+        $urls = wp_handle_upload($_FILES["logo"], array('test_form' => FALSE));
+        $temp = $urls["url"];
+        return $temp;   
+    }      
+    return get_option('logo');
+
+}
+
+function display_theme_panel_fields()
+{
+    add_settings_section("section", "All Settings", null, "theme-options");
+     
+    add_settings_field("twitter_url", "Twitter", "display_twitter_element", "theme-options", "section");
+    add_settings_field("facebook_url", "Facebook", "display_facebook_element", "theme-options", "section");
+    add_settings_field("youtube_url", "Youtube", "display_youtube_element", "theme-options", "section");
+    add_settings_field("logo", "Logo", "logo_display", "theme-options", "section"); 
+    
+    
+    register_setting("section", "twitter_url");
+    register_setting("section", "facebook_url");
+    register_setting("section", "youtube_url");
+    register_setting("section", "logo", "handle_logo_upload");    
+}
+ 
+add_action("admin_init", "display_theme_panel_fields");
+
+/***************************************************************************************************************/
+
+
+add_action( 'init', 'enable_category_taxonomy_for_pages', 500 );
+
+function enable_category_taxonomy_for_pages() {
+    register_taxonomy_for_object_type('category','page');
+}
+
+include_once 'functions/function.php';
+include_once 'blocks/blocks.php';
+
